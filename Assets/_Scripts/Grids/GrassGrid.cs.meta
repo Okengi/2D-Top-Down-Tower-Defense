@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 76caaa23d24daac4eb79ed6a1db4b095
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - _baseTilePrefap: {fileID: 3863438570852495305, guid: 9465fb37245e3384c92dac7282857741, type: 3}
+  - _roadTilePrefap: {fileID: -9124298084689329838, guid: 1f40c50b7a5b9564ea2b035b214085cd, type: 3}
+  - _boarderTilePrefap: {fileID: 3968554370485158446, guid: 834d4addf7902b24e8ef3ffe36194b82, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
