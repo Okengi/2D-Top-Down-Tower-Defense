@@ -44,130 +44,36 @@ public class PreviewTilesManager : MonoBehaviour
 		if (newList) GridManager.instance.AddGridBranch();
 	}
 
-	public void MovePreviewTile(int id, GridType gridTyp, Vector2 newGridPos, Vector2 previousGridPosition)
+	public PreViewGrid GetPreViewGrid(Vector2 pos)
 	{
-		Vector2 relativePreviousGridPosition = previousGridPosition - newGridPos;
+		return _previewTileMatrix.TryGetValue(pos, out PreViewGrid grid) ? grid : null;
+	}
+
+	public void MovePreviewTile(int id, Vector2 justSpawndGridsPos, GridType gridTyp)
+	{
+		_previewTileMatrix.Remove(justSpawndGridsPos);
+		List<Vector2> directions = GridTypManager.instance.GetDirectionsOfType(gridTyp);
 		Vector2 offset = Vector2.zero;
-		Vector2 newOffset = Vector2.zero;
-		Debug.Log($"<color=orange>Id:{id}|GridTyp:{gridTyp}|Previous:{previousGridPosition}|newGridPos:{newGridPos}|relativGridPos:{relativePreviousGridPosition}</color>");
-		if (relativePreviousGridPosition == Vector2.up)
+		Vector2 offsetIfneedToSpawnNew = Vector2.zero;
+		foreach (Vector2 direction in directions)
 		{
-			switch (gridTyp)
+			if (GridManager.instance.GetGrid(justSpawndGridsPos + direction) == null && GetPreViewGrid(justSpawndGridsPos + direction) == null)
 			{
-				case GridType.Vertical:
-					offset = new Vector2(0, -1);
-					break;
-				case GridType.TopLeft:
-					offset = new Vector2(-1, 0);
-					break;
-				case GridType.TopRight:
-					offset = new Vector2(1, 0);
-					break;
-				case GridType.TopLeftRight:
-					offset = new Vector2(-1, 0);
-					newOffset = new Vector2(1, 0);
-					break;
-				case GridType.LeftTopBottom:
-					offset = new Vector2(-1, 0);
-					newOffset = new Vector2(0, -1);
-					break;
-				case GridType.RightTopBottom:
-					offset = new Vector2(1, 0);
-					newOffset = new Vector2(0, -1);
-					break;
-			}
-		}
-		else if (relativePreviousGridPosition == Vector2.down)
-		{
-			switch (gridTyp)
-			{
-				case GridType.Vertical:
-					offset = new Vector2(0, 1);
-					break;
-				case GridType.BottomLeft:
-					offset = new Vector2(-1, 0);
-					break;
-				case GridType.BottomRight:
-					offset = new Vector2(1, 0);
-					break;
-				case GridType.BottomLeftRight:
-					offset = new Vector2(-1, 0);
-					newOffset = new Vector2(1, 0);
-					break;
-				case GridType.LeftTopBottom:
-					offset = new Vector2(-1, 0);
-					newOffset = new Vector2(0, 1);
-					break;
-				case GridType.RightTopBottom:
-					offset = new Vector2(1, 0);
-					newOffset = new Vector2(0, 1);
-					break;
-			}
-		}
-		else if (relativePreviousGridPosition == Vector2.left)
-		{
-			switch (gridTyp)
-			{
-				case GridType.Horizontal:
-					offset = new Vector2(1, 0);
-					break;
-				case GridType.TopLeft:
-					offset = new Vector2(0, 1);
-					break;
-				case GridType.BottomLeft:
-					offset = new Vector2(0, -1);
-					break;
-				case GridType.BottomLeftRight:
-					offset = new Vector2(1, 0);
-					newOffset = new Vector2(0, -1);
-					break;
-				case GridType.TopLeftRight:
-					offset = new Vector2(1, 0);
-					newOffset = new Vector2(0, 1);
-					break;
-				case GridType.LeftTopBottom:
-					offset = new Vector2(0, -1);
-					newOffset = new Vector2(0, 1);
-					break;
-			}
-		}
-		else if (relativePreviousGridPosition == Vector2.right)
-		{
-			switch (gridTyp)
-			{
-				case GridType.Horizontal:
-					offset = new Vector2(-1, 0);
-					break;
-				case GridType.TopRight:
-					offset = new Vector2(0, 1);
-					break;
-				case GridType.BottomRight:
-					offset = new Vector2(0, -1);
-					break;
-				case GridType.BottomLeftRight:
-					offset = new Vector2(-1, 0);
-					newOffset = new Vector2(0, -1);
-					break;
-				case GridType.TopLeftRight:
-					offset = new Vector2(-1, 0);
-					newOffset = new Vector2(0, 1);
-					break;
-				case GridType.RightTopBottom:
-					offset = new Vector2(0, -1);
-					newOffset = new Vector2(0, 1);
-					break;
+				if (offset ==  Vector2.zero)
+				{
+					offset = direction;
+				}
+				else
+				{
+					offsetIfneedToSpawnNew = direction;
+				}
 			}
 		}
 
-		if (newOffset != Vector2.zero)
-		{
-			
-			SpawnPreviewGrid(_previewList.Count, newGridPos + newOffset, true);
-			
-		}
-		_previewList[id].Move(offset);
+		if (offset == Vector2.zero) { _previewList[id].Destroy(); _previewList[id] = null; } else { _previewList[id].Move(offset); }
+		if (offsetIfneedToSpawnNew != Vector2.zero) { SpawnPreviewGrid(_previewList.Count, justSpawndGridsPos + offsetIfneedToSpawnNew, true); }	
 
-
+		_previewTileMatrix[justSpawndGridsPos + offset] = _previewList[id];
 	}
 
 	private void GameStateChanged(GameState newState)

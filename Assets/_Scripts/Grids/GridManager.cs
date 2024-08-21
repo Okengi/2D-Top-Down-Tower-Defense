@@ -85,25 +85,8 @@ public class GridManager : MonoBehaviour
 			_gridList.Add(new List<Grid>());
 		}
 		_gridList[id].Add(spawnedGrid);
-		int previousGridCount = _gridList[id].Count - 2;
-		Grid prevGrid = null;
-		if (previousGridCount >= 0)
-		{
-			prevGrid = _gridList[id][previousGridCount];
-		}
-		else
-		{;
-			if (_gridList[id -1].Count != 0)
-			{
-				prevGrid = _gridList[id - 1].Last();
-			}
-			else
-			{
-				prevGrid = _castleGrid;
-			}
-		}
-		Vector2 previousGridPosition = prevGrid._pointInMatrix;
-		PreviewTilesManager.Instance.MovePreviewTile(id, gridType, posInMatrix, previousGridPosition);
+
+		PreviewTilesManager.Instance.MovePreviewTile(id, posInMatrix, gridType);
 	}
 
 	public void GenerateCastle()
