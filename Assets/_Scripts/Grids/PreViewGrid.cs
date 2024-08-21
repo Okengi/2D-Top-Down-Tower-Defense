@@ -1,28 +1,32 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class PreviewTile : MonoBehaviour
+public class PreViewGrid : MonoBehaviour
 {
 	[SerializeField] protected SpriteRenderer _renderer;
 	[SerializeField] private GameObject _highLight;
 	[SerializeField] private TextMeshPro _text;
 	public Vector2 _gridPos;
 	public int id;
-
-	public void Init(Vector2 gridPos, int id)
+	
+	public void Init(Vector2 pointInMatrix, int id)
 	{
-		_gridPos = gridPos;
+		_gridPos = pointInMatrix;
 		this.id = id;
 		_text.text = id.ToString();
 	}
 
+	public void Destroy()
+	{
+		Destroy(gameObject);
+	}
+
 	public void Move(Vector2 offset)
 	{
-		Vector3 pos = transform.position+ new Vector3(offset.x * GridManager._width, offset.y * GridManager._height, 0);
+		Vector3 pos = transform.position + new Vector3(offset.x * GridManager._width, offset.y * GridManager._height, 0);
 		_gridPos += offset;
 		transform.position += new Vector3(0, 0, 1000);
 		StartCoroutine(MoveWithDelay(pos));
@@ -37,7 +41,7 @@ public class PreviewTile : MonoBehaviour
 	private void OnMouseDown()
 	{
 		if (EventSystem.current.IsPointerOverGameObject()) return;
-		GridManager.instance.GenerateGrid(_gridPos , id);
+		GridManager.instance.GenerateGrid(_gridPos, id);
 	}
 
 	private void OnMouseExit()
@@ -53,6 +57,4 @@ public class PreviewTile : MonoBehaviour
 		}
 		_highLight.SetActive(true);
 	}
-
-
 }

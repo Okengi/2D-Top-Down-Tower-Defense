@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class PreviewTilesManager : MonoBehaviour
-{
-	public List<PreviewTile> _previewList;
-	public Dictionary<Vector2, PreviewTile> _previewTileMatrix;
-	[SerializeField] private PreviewTile previouvTile;
+{	public static PreviewTilesManager Instance;
 
-	public static PreviewTilesManager Instance;
-
+	[SerializeField] private PreViewGrid _preViewGrid;
+	public List<PreViewGrid> _previewList;
+	public Dictionary<Vector2, PreViewGrid> _previewTileMatrix;
+	
 	private void Awake()
 	{
 		Instance = this;
@@ -18,8 +17,8 @@ public class PreviewTilesManager : MonoBehaviour
 
 	private void Start()
 	{
-		_previewList = new List<PreviewTile>();
-		_previewTileMatrix = new Dictionary<Vector2, PreviewTile>();
+		_previewList = new List<PreViewGrid>();
+		_previewTileMatrix = new Dictionary<Vector2, PreViewGrid>();
 	}
 
 	private void OnDestroy()
@@ -27,24 +26,22 @@ public class PreviewTilesManager : MonoBehaviour
 		GameManager.OnGameStateChange -= GameStateChanged;
 	}
 
-	public void SpawnPreviewTile(int id, Vector2 pos, bool newList)
+	public void SpawnPreviewGrid(int id, Vector2 pos, bool newList)
 	{
 		if (GetPreview(pos) != null)
 		{
-			Debug.Log($"<color=red>ERROR:Spawn Preview! Preview Tile already at pos{pos}</color>");
 			return;
 		}
 		else if (GridManager.instance.GetGrid(pos) != null) {
-			Debug.Log($"<color=red>ERROR:Spawn Preview! Grid already at pos{pos} </color>");
 			return;
 		}
 		
-		PreviewTile tile = Instantiate(previouvTile, new Vector2(pos.x * GridManager._width + GridManager._width / 2, pos.y * GridManager._width + GridManager._width / 2), Quaternion.identity);
-		tile.name = $"Preview Tile {id}";
-		tile.Init(pos, id);
-		_previewList.Add(tile);
-		_previewTileMatrix.Add(pos, tile);
-		if (newList) GridManager.instance.AddGridList();
+		PreViewGrid gridPreView = Instantiate(_preViewGrid, new Vector2(pos.x * GridManager._width + GridManager._width / 2, pos.y * GridManager._width + GridManager._width / 2), Quaternion.identity);
+		gridPreView.name = $"Preview Tile {id}";
+		gridPreView.Init(pos, id);
+		_previewList.Add(gridPreView);
+		_previewTileMatrix.Add(pos, gridPreView);
+		if (newList) GridManager.instance.AddGridBranch();
 	}
 
 	public void MovePreviewTile(int id, GridType gridTyp, Vector2 newGridPos, Vector2 previousGridPosition)
@@ -52,8 +49,9 @@ public class PreviewTilesManager : MonoBehaviour
 		Vector2 relativePreviousGridPosition = previousGridPosition - newGridPos;
 		Vector2 offset = Vector2.zero;
 		Vector2 newOffset = Vector2.zero;
-		Debug.Log($"<color=orange>Id:{id} | GridTyp:{gridTyp} | PreviousGridPos:{previousGridPosition}</color>");
-		if (relativePreviousGridPosition == new Vector2(0,1)) {
+		Debug.Log($"<color=orange>Id:{id}|GridTyp:{gridTyp}|Previous:{previousGridPosition}|newGridPos:{newGridPos}|relativGridPos:{relativePreviousGridPosition}</color>");
+		if (relativePreviousGridPosition == Vector2.up)
+		{
 			switch (gridTyp)
 			{
 				case GridType.Vertical:
@@ -68,21 +66,19 @@ public class PreviewTilesManager : MonoBehaviour
 				case GridType.TopLeftRight:
 					offset = new Vector2(-1, 0);
 					newOffset = new Vector2(1, 0);
-					//SpawnPreviewTile(_previewList.Count, newGridPos + new Vector2(1, 0), true);
 					break;
 				case GridType.LeftTopBottom:
 					offset = new Vector2(-1, 0);
 					newOffset = new Vector2(0, -1);
-					//SpawnPreviewTile(_previewList.Count, newGridPos + new Vector2(0, -1), true);
 					break;
 				case GridType.RightTopBottom:
 					offset = new Vector2(1, 0);
 					newOffset = new Vector2(0, -1);
-					//SpawnPreviewTile(_previewList.Count, newGridPos + new Vector2(0, -1), true);
 					break;
 			}
 		}
-		else if (relativePreviousGridPosition == Vector2.down) {
+		else if (relativePreviousGridPosition == Vector2.down)
+		{
 			switch (gridTyp)
 			{
 				case GridType.Vertical:
@@ -96,19 +92,20 @@ public class PreviewTilesManager : MonoBehaviour
 					break;
 				case GridType.BottomLeftRight:
 					offset = new Vector2(-1, 0);
-					SpawnPreviewTile(_previewList.Count, newGridPos + Vector2.right, true);
+					newOffset = new Vector2(1, 0);
 					break;
 				case GridType.LeftTopBottom:
 					offset = new Vector2(-1, 0);
-					SpawnPreviewTile(_previewList.Count, newGridPos + new Vector2(0, 1), true);
+					newOffset = new Vector2(0, 1);
 					break;
 				case GridType.RightTopBottom:
 					offset = new Vector2(1, 0);
-					SpawnPreviewTile(_previewList.Count, newGridPos + new Vector2(0, 1), true);
+					newOffset = new Vector2(0, 1);
 					break;
 			}
 		}
-		else if((relativePreviousGridPosition == Vector2.left)) {
+		else if (relativePreviousGridPosition == Vector2.left)
+		{
 			switch (gridTyp)
 			{
 				case GridType.Horizontal:
@@ -122,19 +119,20 @@ public class PreviewTilesManager : MonoBehaviour
 					break;
 				case GridType.BottomLeftRight:
 					offset = new Vector2(1, 0);
-					SpawnPreviewTile(_previewList.Count, newGridPos + Vector2.down, true);
+					newOffset = new Vector2(0, -1);
 					break;
 				case GridType.TopLeftRight:
 					offset = new Vector2(1, 0);
-					SpawnPreviewTile(_previewList.Count, newGridPos + new Vector2(0, 1), true);
+					newOffset = new Vector2(0, 1);
 					break;
 				case GridType.LeftTopBottom:
 					offset = new Vector2(0, -1);
-					SpawnPreviewTile(_previewList.Count, newGridPos + new Vector2(0, 1), true);
+					newOffset = new Vector2(0, 1);
 					break;
 			}
 		}
-		else if (relativePreviousGridPosition == Vector2.right) {
+		else if (relativePreviousGridPosition == Vector2.right)
+		{
 			switch (gridTyp)
 			{
 				case GridType.Horizontal:
@@ -148,30 +146,27 @@ public class PreviewTilesManager : MonoBehaviour
 					break;
 				case GridType.BottomLeftRight:
 					offset = new Vector2(-1, 0);
-					SpawnPreviewTile(_previewList.Count, newGridPos + Vector2.down, true);
+					newOffset = new Vector2(0, -1);
 					break;
 				case GridType.TopLeftRight:
 					offset = new Vector2(-1, 0);
-					SpawnPreviewTile(_previewList.Count, newGridPos + new Vector2(0, 1), true);
+					newOffset = new Vector2(0, 1);
 					break;
 				case GridType.RightTopBottom:
 					offset = new Vector2(0, -1);
-					SpawnPreviewTile(_previewList.Count, newGridPos + new Vector2(0, 1), true);
+					newOffset = new Vector2(0, 1);
 					break;
 			}
 		}
-		if (GridManager.instance.GetGrid(new Vector2(0, 0)) == null && newOffset != Vector2.zero)
+
+		if (newOffset != Vector2.zero)
 		{
-			Debug.Log("Spawned new Preview tile at");
-			SpawnPreviewTile(_previewList.Count, newGridPos + newOffset, true);
+			
+			SpawnPreviewGrid(_previewList.Count, newGridPos + newOffset, true);
+			
 		}
-		else
-		{
-			Debug.Log("Didn't spawn new PreviewTile");
-		}
-		//Debug.Log($"Moved by offset: {offset}");
-		Debug.Log("---------------------------------");
 		_previewList[id].Move(offset);
+
 
 	}
 
@@ -189,21 +184,21 @@ public class PreviewTilesManager : MonoBehaviour
 	}
 	private void HidePreview()
 	{
-		_previewList.ForEach(delegate (PreviewTile tile)
+		_previewList.ForEach(delegate (PreViewGrid tile)
 		{
 			tile.gameObject.SetActive(false);
 		});
 	}
 	private void ShowPreview()
 	{
-		_previewList.ForEach(delegate (PreviewTile tile)
+		_previewList.ForEach(delegate (PreViewGrid tile)
 		{
 			tile.gameObject.SetActive(true);
 		});
 	}
 
-	private PreviewTile GetPreview(Vector2 pos)
+	private PreViewGrid GetPreview(Vector2 pos)
 	{	// For the Futture to check if after moving there would be overlaping Preview Tile so I can hinnder a Loop happening
-		return _previewTileMatrix.TryGetValue(pos, out PreviewTile pre) ? pre : null;
+		return _previewTileMatrix.TryGetValue(pos, out PreViewGrid pre) ? pre : null;
 	}
 }

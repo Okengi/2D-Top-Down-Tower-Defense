@@ -18,16 +18,24 @@ public abstract class Grid : MonoBehaviour
 
 	protected int id;
 
-	public void Init(GridType typ, Vector2 pointInMatrix, int id)
+	public virtual void Init(GridType typ, Vector2 pointInMatrix, int id)
 	{
+		// ----------------
 		_width = GridManager._width;
 		_height = GridManager._height;
-
 		_tiles = new Dictionary<Vector2, Tile>(_width * _height);
+		// -----------------
+
 		_typeOfGrid = typ;
 		_pointInMatrix = pointInMatrix;
 		this.id = id;
 		_text.text = id.ToString();
+
+		InitializeBiom();
+	}
+
+	protected virtual void InitializeBiom()
+	{
 		StartCoroutine(GenerateGrid());
 	}
 
@@ -37,7 +45,6 @@ public abstract class Grid : MonoBehaviour
 
 		Vector2 offsetOne = Vector2.zero;
 		Vector2 offsetTwo = Vector2.zero;
-
 		for (int x  = 0; x < _width; x++)
 		{
 			for (int y = 0; y < _height; y++)
@@ -211,4 +218,5 @@ public abstract class Grid : MonoBehaviour
 		return null;
 	}
 
+	public GridType GetGridType() { return _typeOfGrid; }
 }
