@@ -66,34 +66,34 @@ public class CastelGrid : Grid
 		return currentTile;
 	}
 
-	public Vector2[] LastRoadTile()
+	public Vector2Int[] LastRoadTile()
 	{
-		Vector2[] ret = new Vector2[2];
+		Vector2Int[] ret = new Vector2Int[2];
 		switch (_typeOfGrid)
 		{
 			case GridType.TopLeft:
-				ret[0] = new Vector2(0, 3);
-				ret[1] = new Vector2(3, 6);
+				ret[0] = new Vector2Int(0, 3);
+				ret[1] = new Vector2Int(3, 6);
 				break;
 			case GridType.TopRight:
-				ret[0] = new Vector2(6, 3);
-				ret[1] = new Vector2(3, 6);
+				ret[0] = new Vector2Int(6, 3);
+				ret[1] = new Vector2Int(3, 6);
 				break;
 			case GridType.BottomLeft:
-				ret[0] = new Vector2(0, 3);
-				ret[1] = new Vector2(3, 0);
+				ret[0] = new Vector2Int(0, 3);
+				ret[1] = new Vector2Int(3, 0);
 				break;
 			case GridType.BottomRight:
-					ret[0]= new Vector2(6, 3);
-					ret[1]= new Vector2(3, 0);
+					ret[0]= new Vector2Int(6, 3);
+					ret[1]= new Vector2Int(3, 0);
 				break;
 			case GridType.Vertical:
-					ret[0] = new Vector2(3, 6);
-					ret[1] = new Vector2(3, 0);
+					ret[0] = new Vector2Int(3, 6);
+					ret[1] = new Vector2Int(3, 0);
 				break;
 			case GridType.Horizontal:
-					ret[0] = new Vector2(0, 3);
-					ret[1] = new Vector2(6, 3);
+					ret[0] = new Vector2Int(0, 3);
+					ret[1] = new Vector2Int(6, 3);
 				break;
 		}
 		return ret;

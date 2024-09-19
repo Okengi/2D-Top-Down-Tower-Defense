@@ -14,6 +14,8 @@ public class GridManager : MonoBehaviour
 	public Dictionary<Vector2, Grid> _gridsMatrix;
 	public List<List<Grid>> _gridList;
 
+	private List<EnemySpawnBiom> _enemySpawnBioms;
+
 	// Variable Inputs (Prefaps)
 	[Header("INPUT")]
 	[SerializeField] private Grid _grassGridePrefap;
@@ -25,12 +27,58 @@ public class GridManager : MonoBehaviour
 	private void Awake()
 	{
 		instance = this;
+		GameManager.OnGameStateChange += GameStateChanged;
+	}
+	private void OnDestroy()
+	{
+		GameManager.OnGameStateChange -= GameStateChanged;
 	}
 	private void Start()
 	{
 		_gridsMatrix = new Dictionary<Vector2, Grid>();
 		_gridList = new List<List<Grid>>();
 		GenerateCastle();
+		_enemySpawnBioms = new List<EnemySpawnBiom>();
+		EnemySpawnBiom defaultEnemySpawnOne = new EnemySpawnBiom(new Vector2(1000,1000), _width, _height);
+		EnemySpawnBiom defaultEnemySpawnTwo = new EnemySpawnBiom(new Vector2(1008,1000), _width, _height);
+		_enemySpawnBioms.Add(defaultEnemySpawnOne);
+		_enemySpawnBioms.Add(defaultEnemySpawnTwo);
+	}
+
+
+
+	private void GameStateChanged(GameState newState)
+	{
+		switch (newState)
+		{
+			case GameState.PlaceNewGrid:
+	
+				break;
+			case GameState.PlaceUnits:
+
+				break;
+			case GameState.WavePreperations:
+				int i = 0;
+				foreach(PreViewGrid preview in PreviewTilesManager.Instance.GetAllPreviewGrids())
+				{
+					Debug.Log($"Trying to move a enemyBiom to {preview._gridPos}");
+					_enemySpawnBioms[i].MoveTo(preview._gridPos);
+					i++;
+				}
+				break;
+			case GameState.Wave:
+
+				break;
+			case GameState.PostWave:
+				foreach (EnemySpawnBiom enemySpawnBiom in _enemySpawnBioms)
+				{
+					enemySpawnBiom.Hide();
+				}
+				break;
+			case GameState.Death:
+
+				break;
+		}
 	}
 
 	// Diffrent GridBranches ----------------------------------------------------
@@ -41,6 +89,7 @@ public class GridManager : MonoBehaviour
 	public void AddGridBranch()
 	{
 		_gridList.Add(new List<Grid>());
+		_enemySpawnBioms.Add(new EnemySpawnBiom(new Vector2(1000, 1000), _width, _height));
 	}
 	// --------------------------------------------------------------------------
 
@@ -104,8 +153,6 @@ public class GridManager : MonoBehaviour
 		_gridList.Add(new List<Grid>());
 		_gridList[0].Add(_castleGrid);
 
-		Debug.Log("<color=red>Working bevore giving directions</color>");
-
 		List<Vector2> directions = GridTypManager.instance.GetDirectionsOfType(gridTyp);
 		
 		PreviewTilesManager.Instance.SpawnPreviewGrid(0, directions[0], false);
@@ -113,4 +160,18 @@ public class GridManager : MonoBehaviour
 
 		FocusOnGrid(new Vector2(0, 0));
 	}
+
+	public void MergedTwoPreviews()
+	{
+		_enemySpawnBioms[0].SelfDestroy();
+		_enemySpawnBioms.RemoveAt(0);
+	}
 }
+
+enum GridBiom
+{
+	Castle,
+	Grass,
+	EnemyHedgh
+}
+

@@ -5,7 +5,7 @@ public class GridsManager : MonoBehaviour
 	public int gridSizeX; // Number of cells in the x-axis
 	public int gridSizeY; // Number of cells in the y-axis
 	public float noiseScale;
-	public TileType[,] grid; // The 2D array to hold tile types
+	public TileTypeForTheExperimentelNoise[,] grid; // The 2D array to hold tile types
 
 	public GameObject grassPrefab;
 	public GameObject roadPrefab;
@@ -48,15 +48,15 @@ public class GridsManager : MonoBehaviour
 
 				if (currentNoise > borderThreshold)
 				{
-					grid[x, y] = TileType.Border;
+					grid[x, y] = TileTypeForTheExperimentelNoise.Border;
 				}
 				else if (currentNoise > roadThreshold)
 				{
-					grid[x,y] = TileType.Road;
+					grid[x,y] = TileTypeForTheExperimentelNoise.Road;
 				}
 				else
 				{
-					grid[x, y] = TileType.Grass;
+					grid[x, y] = TileTypeForTheExperimentelNoise.Grass;
 				}
 			}
 		}
@@ -64,12 +64,12 @@ public class GridsManager : MonoBehaviour
 
 	void InitializeGrid()
 	{
-		grid = new TileType[gridSizeX, gridSizeY];
+		grid = new TileTypeForTheExperimentelNoise[gridSizeX, gridSizeY];
 		for (int x = 0; x < gridSizeX; x++)
 		{
 			for (int y = 0; y < gridSizeY; y++)
 			{
-				grid[x, y] = TileType.Grass;
+				grid[x, y] = TileTypeForTheExperimentelNoise.Grass;
 			}
 		}
 		SetCastleTiles(2,2);
@@ -84,7 +84,7 @@ public class GridsManager : MonoBehaviour
 		{
 			for (int y = startY; y < startY + 3; y++)
 			{
-				grid[x, y] = TileType.Castle;
+				grid[x, y] = TileTypeForTheExperimentelNoise.Castle;
 			}
 		}
 	}
@@ -98,18 +98,18 @@ public class GridsManager : MonoBehaviour
 			for (int y = 0; y < gridSizeY; y++)
 			{
 				Vector3 tilePosition = new Vector3(x,y,0); // Adjust as needed
-				TileType tileType = grid[x, y];
+				TileTypeForTheExperimentelNoise tileType = grid[x, y];
 
 				GameObject tilePrefab;
 				switch (tileType)
 				{
-					case TileType.Road:
+					case TileTypeForTheExperimentelNoise.Road:
 						tilePrefab = roadPrefab;
 						break;
-					case TileType.Border:
+					case TileTypeForTheExperimentelNoise.Border:
 						tilePrefab = borderPrefab;
 						break;
-					case TileType.Castle:
+					case TileTypeForTheExperimentelNoise.Castle:
 						tilePrefab = borderPrefab;
 						break;
 					default:
@@ -124,7 +124,7 @@ public class GridsManager : MonoBehaviour
 	}
 
 }
-public enum TileType
+public enum TileTypeForTheExperimentelNoise
 {
 	Road,
 	Border,

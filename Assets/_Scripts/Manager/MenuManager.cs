@@ -11,6 +11,7 @@ public class MenuManager : MonoBehaviour
 	public TextMeshProUGUI moneyText;
 
 	public GameObject buildingsPanel;
+	public GameObject enemyPanel;
 
 	private void Awake()
 	{
@@ -36,18 +37,32 @@ public class MenuManager : MonoBehaviour
 			case GameState.PlaceNewGrid:
 				stateText.text = "PlaceNewGrid";
 				buildingsPanel.SetActive(false);
+				enemyPanel.SetActive(false);
 				break;
 			case GameState.PlaceUnits:
 				stateText.text = "PlaceUnits";
 				buildingsPanel.SetActive(true);
+				enemyPanel.SetActive(false);
+				break;
+			case GameState.WavePreperations:
+				stateText.text = "EnemysMakePreperations";
+				buildingsPanel.SetActive(false);
+				enemyPanel.SetActive(true);
 				break;
 			case GameState.Wave:
 				stateText.text = "Wave";
 				buildingsPanel.SetActive(false);
+				enemyPanel.SetActive(true);
+				break;
+			case GameState.PostWave:
+				stateText.text = "Fight Aftermath";
+				buildingsPanel.SetActive(false);
+				enemyPanel.SetActive(true);
 				break;
 			case GameState.Death:
 				stateText.text = "Death";
 				buildingsPanel.SetActive(false);
+				enemyPanel.SetActive(false);
 				break;
 		}
 	}

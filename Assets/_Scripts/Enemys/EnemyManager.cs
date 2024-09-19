@@ -9,7 +9,7 @@ public class EnemyManager : MonoBehaviour
 
 	public Enemy[] enemies;
 	private bool Spawnd = false;
-	private Enemy eny = null;
+	private Enemy debugEnemy = null;
 
 	private void Awake()
 	{
@@ -30,16 +30,16 @@ public class EnemyManager : MonoBehaviour
 			case GameState.PlaceUnits:
 				
 				break;
+			case GameState.WavePreperations:
+				
+				break;
 			case GameState.Wave:
-				if (!Spawnd) {
+				if (!Spawnd)
+				{
 					Grid spawnOn = GridManager.instance.LastGrid(0);
-					Debug.Log($"<color=Color.Red>Spaen Enemy at: {spawnOn._pointInMatrix}");
+					Debug.Log($"<color=Red>Spawn Enemy at: {spawnOn.name}</color>");
 					Spawn(spawnOn);
 					Spawnd = true;
-				}
-				else
-				{
-					eny.MoveOneTileForward();
 				}
 				break;
 			case GameState.Death:
@@ -50,16 +50,20 @@ public class EnemyManager : MonoBehaviour
 
 	public void Spawn(Grid grid)
 	{
+		Tile spawnedOn;
 		if (grid._pointInMatrix == new Vector2(0,0)) {
 			CastelGrid g = GridManager.instance.GetCastle();
-			Vector2[] re = g.LastRoadTile();
-			eny = Instantiate(enemies[0], g._pointInMatrix * 7 + re[0], Quaternion.identity);
+			Vector2Int[] re = g.LastRoadTile();
+			debugEnemy = Instantiate(enemies[0], g._pointInMatrix * 7 + re[0], Quaternion.identity);
+			spawnedOn = TileManager.Instance.GetTile(re[0]);
 		}
 		else
 		{
-			Vector2 pos = grid.GetLastRoadTile()._position;
-			eny = Instantiate(enemies[0], grid._pointInMatrix *7 + pos, Quaternion.identity);
+			Vector2Int pos = new Vector2Int(grid.GetLastRoadTile().GetXPosition(), grid.GetLastRoadTile().GetYPosition());
+			spawnedOn = TileManager.Instance.GetTile(pos);
+			debugEnemy = Instantiate(enemies[0], grid._pointInMatrix *7 + pos, Quaternion.identity);
 		}
-		eny.Initialize(grid);
+		//Debug.Log($"<color=red>{spawnedOn.name}, {spawnedOn._positionInTileMatrix}</color>");
+		debugEnemy.Initialize(spawnedOn);
 	}
 }

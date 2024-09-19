@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UIElements;
 
 public abstract class Tile : MonoBehaviour
 {
@@ -10,29 +11,26 @@ public abstract class Tile : MonoBehaviour
 	[SerializeField] private GameObject _highLight;
 
 	protected string _name;
-	public Vector2 _position;
+	protected int _xPosition, _yPosition;
+	protected Vector2Int Position;
+
+	public TileType _tileType;
 	public string GetName() { return _name; }
-
-	public Vector2 _gridPos;
-
-	public virtual void Init(int x, int y, Vector2 gridPos)
+	public virtual void Init(int x, int y)
 	{
-		_name = this.GetType().Name;
-		_gridPos = gridPos;
-		_position = new Vector2(x, y);
+		_name = GetType().Name + $" ({x}|{y}";
+		_xPosition = x;
+		_yPosition = y;
+		Position = new Vector2Int(x, y);
+		gameObject.name = _name;
 	}
-
-	/*private void OnMouseEnter()
-	{
-		if (EventSystem.current.IsPointerOverGameObject()) return;
-		_highLight.SetActive(true);
-	}*/
 
 	private void OnMouseExit()
 	{
 		_highLight.SetActive(false);
 	}
-
+	public int GetXPosition() { return _xPosition;}
+	public int GetYPosition() { return _yPosition;}
 	private void OnMouseOver()
 	{
 		if (EventSystem.current.IsPointerOverGameObject())
@@ -45,6 +43,18 @@ public abstract class Tile : MonoBehaviour
 	protected virtual void OnMouseDown()
 	{
 		if (EventSystem.current.IsPointerOverGameObject()) return;
-		GridManager.instance.FocusOnGrid(_gridPos);
+		//GridManager.instance.FocusOnGrid(_gridPos);
 	}
+	// A Star Path Finding ____________________________________________
+	public float gCost;
+	public float hCost;
+	public float fCost;
+
+	public Tile previousTile;
+
+	public void CalculateFCost()
+	{
+		fCost = gCost + hCost;
+	}
+
 }

@@ -26,6 +26,11 @@ public class PreviewTilesManager : MonoBehaviour
 		GameManager.OnGameStateChange -= GameStateChanged;
 	}
 
+	public List<PreViewGrid> GetAllPreviewGrids()
+	{
+		return _previewList;
+	}
+
 	public void SpawnPreviewGrid(int id, Vector2 pos, bool newList)
 	{
 		if (GetPreview(pos) != null)

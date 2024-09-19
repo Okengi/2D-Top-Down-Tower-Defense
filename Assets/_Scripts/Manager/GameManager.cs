@@ -48,10 +48,16 @@ public class GameManager : MonoBehaviour
 				UpdateGameState(GameState.PlaceUnits);
 				break;
 			case GameState.PlaceUnits:
-				UpdateGameState(GameState.Wave);
+				UpdateGameState(GameState.WavePreperations);
 				break;
+			case GameState.WavePreperations: 
+				UpdateGameState(GameState.Wave); break;
 			case GameState.Wave:
-				UpdateGameState(GameState.PlaceNewGrid);
+				UpdateGameState(GameState.PostWave);
+				break;
+			case GameState.PostWave:
+				UpdateGameState(GameState.PlaceNewGrid); break;
+			case GameState.Death:
 				break;
 				
 		}
@@ -74,6 +80,8 @@ public enum GameState
 {
 	PlaceNewGrid = 0,
 	PlaceUnits = 1,
-	Wave = 2,
-	Death = 3
+	WavePreperations = 2,
+	Wave = 3,
+	PostWave = 4,
+	Death = 5
 }

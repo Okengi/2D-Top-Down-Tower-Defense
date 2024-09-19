@@ -112,13 +112,16 @@ public abstract class Grid : MonoBehaviour
 	protected void HandelSpawningTile(Tile tile, int x, int y, Vector2 gridPos)
 	{
 		if (tile == null) return;
+		int xPos = x + (int)gridPos.x;
+		int yPos = y + (int)gridPos.y;
 		var spawnedTile = Instantiate(tile, new Vector3(gridPos.x + x, gridPos.y + y), Quaternion.identity);
 		spawnedTile.transform.parent = transform;
 
-		spawnedTile.Init(x, y, _pointInMatrix);
+		spawnedTile.Init(x, y);
 		spawnedTile.name = $"{spawnedTile.GetName()} {x} {y}";
 
 		_tiles[new Vector2(x, y)] = spawnedTile;
+		TileManager.Instance.AddTileToMatix(spawnedTile, new Vector2Int(xPos, yPos));
 	}
 
 	public bool HasConnectionToRight()
