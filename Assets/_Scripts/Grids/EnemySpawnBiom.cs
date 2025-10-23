@@ -1,91 +1,71 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
+using static UnityEditor.PlayerSettings;
 
-public class EnemySpawnBiom
+public class EnemySpawnBiom : Biom
 {
-
-	[SerializeField] private EnemyGroundTile enemyGroungTilePrefap;
-	private Vector2 _gridPos;
-	private EnemyGroundTile[,] tiles;
-	private int width;
-	private int height;
-	public EnemySpawnBiom(Vector2 _gridPos, int width, int height)
+	public EnemySpawnBiom(int id, Vector2 _gridPos, int width, int height, GridType gridType)
+		: base(id,_gridPos, width, height, gridType)
 	{
-		this._gridPos = _gridPos;
-		this.width = width;
-		this.height = height;
-		tiles = new EnemyGroundTile[width, height];
-		InitializeGrid();
+
+	}
+	protected override TileType GetTileTyp(int x, int y)
+	{
+		return TileType.Enemy;
 	}
 
-	public void InitializeGrid()
+	protected override void InitializeGrid()
 	{
-		
-		for (int x = 0; x < width; x++)
+		ForEachTile((x, y) =>
 		{
-			for (int y = 0; y < height; y++)
-			{
-				int xPos = x + (int)_gridPos.x;
-				int yPos = y + (int)_gridPos.y;
-				TileManager.Instance.SpawnTile(TileType.EnemyGround, xPos, yPos);
-				tiles[x, y] = (EnemyGroundTile)TileManager.Instance.GetTile(new Vector2Int(xPos, yPos));
-			}
-		}
+			int xPos = x + (int)(_gridPos.x) * width;
+			int yPos = y + (int)(_gridPos.y) * height;
+			TileManager.Instance.SpawnTile(TileType.Enemy, xPos, yPos, id);
+			tiles[x, y] = TileManager.Instance.GetTile(new Vector2Int(xPos, yPos), false);
+		});
 	}
 	public void MoveTo(Vector2 gridPos)
 	{
 		this._gridPos = gridPos;
-		UpdateLocation();
-	}
-
-	public void Hide()
-	{
-		for (int x = 0; x < width; x++)
+		ForEachTile((x, y) =>
 		{
-			for (int y = 0; y < height; y++)
-			{
-				int xPos = x + (int)(_gridPos.x * 1000);
-				int yPos = y + (int)(_gridPos.y * 1000);
-				tiles[x, y].Move(new Vector2Int(xPos, yPos));
-			}
-		}
-	}
-
-	public void SelfDestroy()
-	{
-		for (int x = 0; x < width; x++)
-		{
-			for (int y = 0; y < height; y++)
-			{
-				tiles[x, y].SelfDestroy();
-			}
-		}
+			int xPos = x + (int)(_gridPos.x * width);
+			int yPos = y + (int)(_gridPos.y * width);
+			tiles[x, y].Move(new Vector2Int(xPos, yPos));
+		});
 	}
 
 	public void Show()
 	{
-		for (int x = 0; x < width; x++)
+		ForEachTile((x, y) =>
 		{
-			for (int y = 0; y < height; y++)
-			{
-				int xPos = x + (int)_gridPos.x;
-				int yPos = y + (int)_gridPos.y;
-				tiles[x, y].Show();
-			}
-		}
+			int xPos = x + (int)(_gridPos.x);
+			int yPos = y + (int)(_gridPos.y);
+			tiles[x, y].Move(new Vector2Int(xPos, yPos));
+		});
 	}
 
-	private void UpdateLocation() 
+	public void Hide()
 	{
-		for (int x = 0; x < width; x++)
+		ForEachTile((x, y) =>
 		{
-			for (int y = 0; y < height; y++)
-			{
-				int xPos = x + (int)(_gridPos.x * width);
-				int yPos = y + (int)(_gridPos.y * width);
-				tiles[x, y].Move(new Vector2Int(xPos, yPos));
-			}
-		}
+			int xPos = x + (int)(_gridPos.x * 1000);
+			int yPos = y + (int)(_gridPos.y * 1000);
+			tiles[x, y].Move(new Vector2Int(xPos, yPos));
+		});
+	}
+
+	public void SelfDestroy()
+	{
+		ForEachTile((x, y) => tiles[x, y].SelfDestroy());
+	}
+
+	public void SpawnEnemys(GameObject monster, int count = 1)
+	{
+		int x = 3;
+		int y = 6;
+		tiles[x, y].Spawn(monster);
 	}
 }

@@ -9,17 +9,13 @@ public class Enemy : MonoBehaviour
 	private List<Tile> path;
 	public float moveSpeed = 1f;
 	bool reachedCastle = false;
+	public float health = 100f;
 
 	public void Initialize(Tile tile)
 	{
 		curentlyOccupiedTile = tile;
 		Debug.Log("Bevore Pathfinding Begins");
 		path = PathFinding.instance.ShortesPath_ToCastle(curentlyOccupiedTile);
-
-		/*foreach (Tile t in path)
-		{
-			Debug.Log($"<color=green>{t.GetName()}| {t._positionInTileMatrix}</color>");
-		}*/
 	}
 
 
@@ -27,6 +23,15 @@ public class Enemy : MonoBehaviour
 	{
 		Move();
 
+	}
+
+	public void Damage(float damage)
+	{
+		health -= damage;
+		if(health <= 0)
+		{
+			Destroy(gameObject);
+		}
 	}
 
 	public void Move()

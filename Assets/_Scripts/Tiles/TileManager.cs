@@ -7,6 +7,14 @@ public class TileManager : MonoBehaviour
    public static TileManager Instance { get; private set; }
 
 	[SerializeField] private EnemyGroundTile enemyGroundTilePrefap;
+	[SerializeField] private CastelTile castelTilePrefap;
+	[SerializeField] private RoadTile roadTilePrefap;
+	[SerializeField] private BoarderTile boarderTilePrefap;
+	[SerializeField] private GrassTile grassTilePrefap;
+
+	Dictionary<int, GameObject> tileHolders = new Dictionary<int, GameObject>();
+
+	private CastelTile CastelTile = null;
 
 	private Dictionary<Vector2Int, Tile> _allTilesMatrix = new Dictionary<Vector2Int, Tile>(); 
 
@@ -23,25 +31,90 @@ public class TileManager : MonoBehaviour
 		_allTilesMatrix.Remove(pos);
 	}
 
-	public void AddTileToMatix(Tile tile, Vector2Int tilePosInMatrix)
+	public void SpawnTile(TileType tileTyp, int x, int y, int id)
 	{
-		if(tile._tileType == TileType.Castle)
+		Tile spawnedTile;
+		switch (tileTyp)
 		{
-			SetUpCastleTile(tile);
-			return;
+			case TileType.Castle:
+				SetUpCastleTile(x, y);
+				break;
+			case TileType.Boarder:
+				spawnedTile = Instantiate(boarderTilePrefap, new Vector3(x, y), Quaternion.identity);
+				if (!tileHolders.ContainsKey(id))
+				{
+					tileHolders[id] = new GameObject();
+					tileHolders[id].name = $"Biom {id}";
+				}
+				
+				spawnedTile.transform.parent = tileHolders[id].transform;
+				spawnedTile.Init(x, y, id);
+				
+				_allTilesMatrix[new Vector2Int(x, y)] = spawnedTile;
+				break;
+			case TileType.Grass:
+				spawnedTile = Instantiate(grassTilePrefap, new Vector3(x, y), Quaternion.identity);
+				if (!tileHolders.ContainsKey(id))
+				{
+					tileHolders[id] = new GameObject();
+					tileHolders[id].name = $"Biom {id}";
+				}
+
+				spawnedTile.transform.parent = tileHolders[id].transform;
+
+				spawnedTile.Init(x, y, id);
+				_allTilesMatrix[new Vector2Int(x, y)] = spawnedTile;
+				break;
+			case TileType.Road:
+				spawnedTile = Instantiate(roadTilePrefap, new Vector3(x, y), Quaternion.identity);
+				if (!tileHolders.ContainsKey(id))
+				{
+					tileHolders[id] = new GameObject();
+					tileHolders[id].name = $"Biom {id}";
+				}
+
+				spawnedTile.transform.parent = tileHolders[id].transform;
+
+				spawnedTile.Init(x, y, id);
+				_allTilesMatrix[new Vector2Int(x, y)] = spawnedTile;
+				break;
+			case TileType.Enemy:
+				spawnedTile = Instantiate(enemyGroundTilePrefap, new Vector3(x, y), Quaternion.identity);
+				if (!tileHolders.ContainsKey(id))
+				{
+					tileHolders[id] = new GameObject();
+					tileHolders[id].name = $"Biom {id}";
+				}
+
+				spawnedTile.transform.parent = tileHolders[id].transform;
+
+				spawnedTile.Init(x, y, id);
+				_allTilesMatrix[new Vector2Int(x, y)] = spawnedTile;
+				break;
+		
 		}
-		_allTilesMatrix.Add(tilePosInMatrix, tile);
+
+		
 	}
 
-	public void SpawnTile(TileType tileTyp, int x, int y)
+	private void SetUpCastleTile(int x, int y)
 	{
-		
-		Tile spawnedTile = Instantiate(enemyGroundTilePrefap, new Vector3(x, y), Quaternion.identity);
-		spawnedTile.transform.parent = transform;
+		if(CastelTile == null)
+		{
+			Tile castleTile = Instantiate(castelTilePrefap, new Vector3(x +1, y + 1), Quaternion.identity);
+			castleTile.transform.parent = tileHolders[0].transform;
 
-		spawnedTile.Init(x, y);
+			castleTile.Init(x, y, 0);
 
-		_allTilesMatrix[new Vector2Int(x, y)] = spawnedTile;
+			for (int i = 2; i < 5; i++)
+			{
+				for (int j = 2; j < 5; j++)
+				{
+					_allTilesMatrix[new Vector2Int(i, j)] = castleTile;
+				}
+			}
+			CastelTile = castleTile.GetComponent<CastelTile>();
+		}
 	}
 
 	public void MoveTileFromTo(Vector2Int from, Vector2Int to)
@@ -66,23 +139,13 @@ public class TileManager : MonoBehaviour
 		}
 		else
 		{
-			Debug.LogError($"No tile found at position {from}.");
+			//Debug.LogError($"No tile found at position {from}.");
 		}
 	}
 
-	private void SetUpCastleTile(Tile tile)
+	public Tile GetTile(Vector2Int posInMatrix, bool debug = false)
 	{
-		for(int i = 2; i < 5; i++)
-		{
-			for (int j = 2; j < 5; j++)
-			{
-				_allTilesMatrix.Add(new Vector2Int(i, j), tile);
-			}
-		}
-	}
-
-	public Tile GetTile(Vector2Int posInMatrix)
-	{
+		if (debug) Debug.Log($"Geting tile at {posInMatrix}");
 		return _allTilesMatrix.TryGetValue(posInMatrix, out Tile tile) ? tile : null;
 	}
 
@@ -100,7 +163,7 @@ public enum TileType
 {
 	Road,
 	Grass,
-	Mouinten,
+	Boarder,
 	Castle,
-	EnemyGround
+	Enemy
 }

@@ -15,12 +15,14 @@ public class BuildingManager : MonoBehaviour
 		instance = this;
 	}
 
-	public void Build(Vector2 _gridPos, Vector2 _tilePos)
+	public void Build(Vector2 _tilePos)
 	{
 		if(GameManager.instance.GetMoney()-buildingToPlace.cost >= 0)
 		{
 			GameManager.instance.SpendMoney(buildingToPlace.cost);
-			var spawnedBuilding = Instantiate(buildingToPlace, _gridPos * 7 + _tilePos, Quaternion.identity);
+			Vector2 vec2 = GridManager.Instance.CalcGridPos(_tilePos);
+			
+			var spawnedBuilding = Instantiate(buildingToPlace, _tilePos, Quaternion.identity);
 		}
 	}
 

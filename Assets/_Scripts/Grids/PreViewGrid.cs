@@ -41,7 +41,7 @@ public class PreViewGrid : MonoBehaviour
 	private void OnMouseDown()
 	{
 		if (EventSystem.current.IsPointerOverGameObject()) return;
-		GridManager.instance.GenerateGrid(_gridPos, id);
+		GridManager.Instance.GenerateGrassBiom(_gridPos, id);
 	}
 
 	private void OnMouseExit()

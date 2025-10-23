@@ -5,9 +5,9 @@ using UnityEngine;
 
 public class CastelTile : Tile
 {
-	public override void Init(int x, int y)
+	public override void Init(int x, int y, int id)
 	{
-		base.Init(x, y);
+		base.Init(x, y, id);
 		_tileType = TileType.Castle;
 	}
 }

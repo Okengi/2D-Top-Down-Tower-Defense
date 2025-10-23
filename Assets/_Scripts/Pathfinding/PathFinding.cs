@@ -13,16 +13,16 @@ public class PathFinding : MonoBehaviour
 		}
 		else { Destroy(gameObject); }
 	}
-	public List<Grid> GetNeighborGrids(Grid grid)
+	public List<Biom> GetNeighborGrids(Biom biom)
 	{
-		List<Grid> neighbors = new List<Grid>();
-		Vector2 gridPos = grid._pointInMatrix;
+		List<Biom> neighbors = new List<Biom>();
+		Vector2 gridPos = biom.GridPos;
 
-		List<Vector2> directions = GridTypManager.instance.GetDirectionsOfType(grid.GetGridType());
+		List<Vector2> directions = GridTypManager.instance.GetDirectionsOfType(biom.GetGridType());
 
 		foreach (Vector2 dir in directions)
 		{
-			Grid neighbor = GridManager.instance.GetGrid(gridPos + dir);
+			Biom neighbor = GridManager.Instance.GetGrid(gridPos + dir);
 			if (neighbor != null)
 			{
 				neighbors.Add(neighbor);
@@ -113,7 +113,7 @@ public class PathFinding : MonoBehaviour
 			openList.Remove(currentTile);
 			closedList.Add(currentTile);
 
-			foreach (Tile neigbore in GetNeighborTiles(currentTile, new List<TileType> { TileType.Mouinten}))
+			foreach (Tile neigbore in GetNeighborTiles(currentTile, new List<TileType> { TileType.Boarder, TileType.Grass}))
 			{
 				if (closedList.Contains(neigbore)) 
 				{

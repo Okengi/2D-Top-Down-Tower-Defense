@@ -1,0 +1,17 @@
+{
+    "waves": [
+      {
+        "waveNumber": 1,
+        "enemies": [
+          { "enemyType": "Goblin", "count": 5 }
+        ]
+      },
+      {
+        "waveNumber": 2,
+        "enemies": [
+          { "enemyType": "Goblin", "count": 10 }
+        ]
+      }
+    ]
+  }
+  

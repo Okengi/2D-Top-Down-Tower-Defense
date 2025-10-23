@@ -6,122 +6,73 @@ public class GridTypManager : MonoBehaviour
 {
 	public static GridTypManager instance;
 
-	public bool canSplit;
+	public bool canSplit = false;
+	private int pathBranchCount = 0;
+	private List<GridType> typesWithMultipleBranches = new List<GridType>();
+	[SerializeField]
+	List<GridType> notAllowed = new List<GridType>();
+	[SerializeField] 
+	List<GridType> rheinfolge = new List<GridType>();
+	[SerializeField]
+	public bool rheinfolgeEinhalten = false;
+
+
+
+	public void SetPathBranchCount(int pathBranchCount) { this.pathBranchCount = pathBranchCount; }
+	public void DecreasBranchCount() { pathBranchCount--; }
 
 	private void Awake()
 	{
 		instance = this;
 	}
-
-	public GridType GetRandomPossiebelGridTyp(Vector2 pointInMatrix)
+	private void Start()
 	{
-		List<GridType> possibelTypesOfGrid = GetPossiebelTypes(pointInMatrix);
-		return possibelTypesOfGrid[Random.Range(0, possibelTypesOfGrid.Count)];
+		typesWithMultipleBranches.Add(GridType.LeftTopBottom);
+		typesWithMultipleBranches.Add(GridType.RightTopBottom);
+		typesWithMultipleBranches.Add(GridType.BottomLeftRight);
+		typesWithMultipleBranches.Add(GridType.TopLeftRight);
 	}
 
-	public List<GridType> GetPossiebelTypes(Vector2 pointInGridMatrix)
+	public GridType GetRandomPossiebelGridTyp(Vector2 pointInMatrix, List<GridType> excluding = null)
 	{
-		if (canSplit)
+		if(rheinfolge.Count > 0 && rheinfolgeEinhalten)
 		{
-			return IncludingSplitingPathsGetPossibleTypes(pointInGridMatrix);
+			GridType d= rheinfolge[0];
+			rheinfolge.RemoveAt(0);
+			return d;
+		}
+		CheckBranchPossibility();
+		List<GridType> possibelTypesOfGrid = GetPossiebelTypes(pointInMatrix);
+		if (excluding != null)
+		{
+			possibelTypesOfGrid.RemoveAll(type => excluding.Contains(type));
+		}
+		GridType randGridTyp = possibelTypesOfGrid[Random.Range(0, possibelTypesOfGrid.Count)];
+		if (typesWithMultipleBranches.Contains(randGridTyp)) { pathBranchCount--; }
+		return randGridTyp;
+	}
+
+	private void CheckBranchPossibility()
+	{
+		if (pathBranchCount > 0) { 
+			canSplit = true;
 		}
 		else
 		{
-			return ExcludingSplitingPathsGetPossibleTypes(pointInGridMatrix);
+			canSplit = false;
 		}
 	}
-	public List<GridType> IncludingSplitingPathsGetPossibleTypes(Vector2 pointInGridMatrix)
-	{
-		List<GridType> notPossibleTypes = new List<GridType>();
-		Grid leftGrid = GridManager.instance.GetGrid(pointInGridMatrix + new Vector2(-1, 0));
-		if (leftGrid != null)
-		{
-			if (leftGrid.HasConnectionToRight())
-			{
-				notPossibleTypes.Add(GridType.Vertical);
-				notPossibleTypes.Add(GridType.TopRight);
-				notPossibleTypes.Add(GridType.BottomRight);
-
-				notPossibleTypes.Add(GridType.RightTopBottom);
-			}
-			else
-			{
-				notPossibleTypes.Add(GridType.Horizontal);
-				notPossibleTypes.Add(GridType.TopLeft);
-				notPossibleTypes.Add(GridType.BottomLeft);
-
-				notPossibleTypes.Add(GridType.LeftTopBottom);
-				notPossibleTypes.Add(GridType.TopLeftRight);
-				notPossibleTypes.Add(GridType.BottomLeftRight);
-			}
-		}
-		Grid topGrid = GridManager.instance.GetGrid(pointInGridMatrix + new Vector2(0, 1));
-		if (topGrid != null)
-		{
-			if (topGrid.HasConnectionToBottom())
-			{
-				notPossibleTypes.Add(GridType.BottomRight);
-				notPossibleTypes.Add(GridType.BottomLeft);
-				notPossibleTypes.Add(GridType.Horizontal);
-
-				notPossibleTypes.Add(GridType.BottomLeftRight);
-			}
-			else
-			{
-				notPossibleTypes.Add(GridType.TopRight);
-				notPossibleTypes.Add(GridType.TopLeft);
-				notPossibleTypes.Add(GridType.Vertical);
-
-				notPossibleTypes.Add(GridType.TopLeftRight);
-				notPossibleTypes.Add(GridType.LeftTopBottom);
-				notPossibleTypes.Add(GridType.RightTopBottom);
-			}
-		}
-		Grid rightGrid = GridManager.instance.GetGrid(pointInGridMatrix + new Vector2(1, 0));
-		if (rightGrid != null)
-		{
-			if (rightGrid.HasConnectionToLeft())
-			{
-				notPossibleTypes.Add(GridType.BottomLeft);
-				notPossibleTypes.Add(GridType.TopLeft);
-				notPossibleTypes.Add(GridType.Vertical);
-
-				notPossibleTypes.Add(GridType.LeftTopBottom);
-			}
-			else
-			{
-				notPossibleTypes.Add(GridType.BottomRight);
-				notPossibleTypes.Add(GridType.TopRight);
-				notPossibleTypes.Add(GridType.Horizontal);
-
-				notPossibleTypes.Add(GridType.RightTopBottom);
-				notPossibleTypes.Add(GridType.TopLeftRight);
-				notPossibleTypes.Add(GridType.BottomLeftRight);
-			}
-		}
-		Grid bottomGrid = GridManager.instance.GetGrid(pointInGridMatrix + new Vector2(0, -1));
-		if (bottomGrid != null)
-		{
-			if (bottomGrid.HasConnectionToTop())
-			{
-				notPossibleTypes.Add(GridType.TopLeft);
-				notPossibleTypes.Add(GridType.TopRight);
-				notPossibleTypes.Add(GridType.Horizontal);
-
-				notPossibleTypes.Add(GridType.TopLeftRight);
-			}
-			else
-			{
-				notPossibleTypes.Add(GridType.BottomLeft);
-				notPossibleTypes.Add(GridType.BottomRight);
-				notPossibleTypes.Add(GridType.Vertical);
-
-				notPossibleTypes.Add(GridType.BottomLeftRight);
-				notPossibleTypes.Add(GridType.LeftTopBottom);
-				notPossibleTypes.Add(GridType.RightTopBottom);
-			}
-		}
-		List<GridType> possibleTypes = new List<GridType>() {
+	
+	List<GridType> possibleTypesExcludingSplitingPaths = new List<GridType>() {
+			GridType.BottomLeft,
+			GridType.TopLeft,
+			GridType.TopRight,
+			GridType.BottomRight,
+			GridType.Vertical,
+			GridType.Horizontal,
+		};
+	
+	List<GridType> possibleTypesIncludingSplitingPaths = new List<GridType>() {
 			GridType.BottomLeft,
 			GridType.TopLeft,
 			GridType.TopRight,
@@ -133,13 +84,31 @@ public class GridTypManager : MonoBehaviour
 			GridType.RightTopBottom,
 			GridType.LeftTopBottom,
 		};
-		possibleTypes.RemoveAll(type => notPossibleTypes.Contains(type));
-		return possibleTypes;
-	}
-	public List<GridType> ExcludingSplitingPathsGetPossibleTypes(Vector2 pointInGridMatrix)
+	
+	
+	public List<GridType> GetPossiebelTypes(Vector2 pointInGridMatrix)
 	{
 		List<GridType> notPossibleTypes = new List<GridType>();
-		Grid leftGrid = GridManager.instance.GetGrid(pointInGridMatrix + new Vector2(-1, 0));
+		notPossibleTypes = GetNotPossibleTypes(pointInGridMatrix);
+		List<GridType> possibleTypes;
+		if (canSplit)
+		{
+			possibleTypes = new List<GridType>(possibleTypesIncludingSplitingPaths);
+		}
+		else
+		{
+			possibleTypes = new List<GridType>(possibleTypesExcludingSplitingPaths);
+		}
+		possibleTypes.RemoveAll(type => notPossibleTypes.Contains(type));
+		possibleTypes.RemoveAll(type => notAllowed.Contains(type));
+		return possibleTypes;
+	}
+	
+
+	public List<GridType> GetNotPossibleTypes(Vector2 pointInGridMatrix)
+	{
+		List<GridType> notPossibleTypes = new List<GridType>();
+		Biom leftGrid = GridManager.Instance.GetGrid(pointInGridMatrix + new Vector2(-1, 0));
 		if (leftGrid != null)
 		{
 			if (leftGrid.HasConnectionToRight())
@@ -147,17 +116,21 @@ public class GridTypManager : MonoBehaviour
 				notPossibleTypes.Add(GridType.Vertical);
 				notPossibleTypes.Add(GridType.TopRight);
 				notPossibleTypes.Add(GridType.BottomRight);
+
+				notPossibleTypes.Add(GridType.RightTopBottom);
 			}
 			else
 			{
 				notPossibleTypes.Add(GridType.Horizontal);
 				notPossibleTypes.Add(GridType.TopLeft);
 				notPossibleTypes.Add(GridType.BottomLeft);
+
+				notPossibleTypes.Add(GridType.LeftTopBottom);
+				notPossibleTypes.Add(GridType.TopLeftRight);
+				notPossibleTypes.Add(GridType.BottomLeftRight);
 			}
 		}
-		
-		Grid topGrid = GridManager.instance.GetGrid(pointInGridMatrix + new Vector2(0, 1));
-		
+		Biom topGrid = GridManager.Instance.GetGrid(pointInGridMatrix + new Vector2(0, 1));
 		if (topGrid != null)
 		{
 			if (topGrid.HasConnectionToBottom())
@@ -165,16 +138,21 @@ public class GridTypManager : MonoBehaviour
 				notPossibleTypes.Add(GridType.BottomRight);
 				notPossibleTypes.Add(GridType.BottomLeft);
 				notPossibleTypes.Add(GridType.Horizontal);
+
+				notPossibleTypes.Add(GridType.BottomLeftRight);
 			}
 			else
 			{
 				notPossibleTypes.Add(GridType.TopRight);
 				notPossibleTypes.Add(GridType.TopLeft);
 				notPossibleTypes.Add(GridType.Vertical);
+
+				notPossibleTypes.Add(GridType.TopLeftRight);
+				notPossibleTypes.Add(GridType.LeftTopBottom);
+				notPossibleTypes.Add(GridType.RightTopBottom);
 			}
 		}
-		Grid rightGrid = GridManager.instance.GetGrid(pointInGridMatrix + new Vector2(1, 0));
-		
+		Biom rightGrid = GridManager.Instance.GetGrid(pointInGridMatrix + new Vector2(1, 0));
 		if (rightGrid != null)
 		{
 			if (rightGrid.HasConnectionToLeft())
@@ -182,16 +160,21 @@ public class GridTypManager : MonoBehaviour
 				notPossibleTypes.Add(GridType.BottomLeft);
 				notPossibleTypes.Add(GridType.TopLeft);
 				notPossibleTypes.Add(GridType.Vertical);
+
+				notPossibleTypes.Add(GridType.LeftTopBottom);
 			}
 			else
 			{
 				notPossibleTypes.Add(GridType.BottomRight);
 				notPossibleTypes.Add(GridType.TopRight);
 				notPossibleTypes.Add(GridType.Horizontal);
+
+				notPossibleTypes.Add(GridType.RightTopBottom);
+				notPossibleTypes.Add(GridType.TopLeftRight);
+				notPossibleTypes.Add(GridType.BottomLeftRight);
 			}
 		}
-		Grid bottomGrid = GridManager.instance.GetGrid(pointInGridMatrix + new Vector2(0, -1));
-		
+		Biom bottomGrid = GridManager.Instance.GetGrid(pointInGridMatrix + new Vector2(0, -1));
 		if (bottomGrid != null)
 		{
 			if (bottomGrid.HasConnectionToTop())
@@ -199,27 +182,24 @@ public class GridTypManager : MonoBehaviour
 				notPossibleTypes.Add(GridType.TopLeft);
 				notPossibleTypes.Add(GridType.TopRight);
 				notPossibleTypes.Add(GridType.Horizontal);
+
+				notPossibleTypes.Add(GridType.TopLeftRight);
 			}
 			else
 			{
 				notPossibleTypes.Add(GridType.BottomLeft);
 				notPossibleTypes.Add(GridType.BottomRight);
 				notPossibleTypes.Add(GridType.Vertical);
+
+				notPossibleTypes.Add(GridType.BottomLeftRight);
+				notPossibleTypes.Add(GridType.LeftTopBottom);
+				notPossibleTypes.Add(GridType.RightTopBottom);
 			}
 		}
-		List<GridType> possibleTypes = new List<GridType>() {
-			GridType.BottomLeft,
-			GridType.TopLeft,
-			GridType.TopRight,
-			GridType.BottomRight,
-			GridType.Vertical,
-			GridType.Horizontal,
-		};
-		possibleTypes.RemoveAll(type => notPossibleTypes.Contains(type));
-		
-		return possibleTypes;
+		return notPossibleTypes;
 	}
-
+	
+	
 	public List<Vector2> GetDirectionsOfType(GridType gridType)
 	{
 		List<Vector2> directions = new List<Vector2>();
@@ -284,6 +264,7 @@ public enum GridType
 	TopRight = 3,
 	BottomLeft = 4,
 	BottomRight = 5,
+
 	BottomLeftRight = 6,
 	TopLeftRight = 7,
 	LeftTopBottom = 8,

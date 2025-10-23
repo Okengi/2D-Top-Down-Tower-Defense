@@ -37,7 +37,7 @@ public class PreviewTilesManager : MonoBehaviour
 		{
 			return;
 		}
-		else if (GridManager.instance.GetGrid(pos) != null) {
+		else if (GridManager.Instance.GetGrid(pos) != null) {
 			return;
 		}
 		
@@ -46,39 +46,97 @@ public class PreviewTilesManager : MonoBehaviour
 		gridPreView.Init(pos, id);
 		_previewList.Add(gridPreView);
 		_previewTileMatrix.Add(pos, gridPreView);
-		if (newList) GridManager.instance.AddGridBranch();
+		if (newList) GridManager.Instance.AddGridBranch();
 	}
 
-	public PreViewGrid GetPreViewGrid(Vector2 pos)
+	public void MovePreviewGrid(int id, Vector2 justSpawnedGridPos, List<Vector2> directions)
 	{
-		return _previewTileMatrix.TryGetValue(pos, out PreViewGrid grid) ? grid : null;
-	}
+		_previewTileMatrix.Remove(justSpawnedGridPos);
 
-	public void MovePreviewTile(int id, Vector2 justSpawndGridsPos, GridType gridTyp)
-	{
-		_previewTileMatrix.Remove(justSpawndGridsPos);
-		List<Vector2> directions = GridTypManager.instance.GetDirectionsOfType(gridTyp);
-		Vector2 offset = Vector2.zero;
-		Vector2 offsetIfneedToSpawnNew = Vector2.zero;
+		List<int> previewDirs = new List<int>();
+		List<Vector2> emptyDirs = new List<Vector2>();
+		Vector2 occupiedDir = Vector2.zero;
+
 		foreach (Vector2 direction in directions)
 		{
-			if (GridManager.instance.GetGrid(justSpawndGridsPos + direction) == null && GetPreViewGrid(justSpawndGridsPos + direction) == null)
+			Vector2 gridPosToCheck = justSpawnedGridPos + direction;
+
+			if (GridManager.Instance.GetGrid(gridPosToCheck) == null && !IsPreview(gridPosToCheck))
 			{
-				if (offset ==  Vector2.zero)
-				{
-					offset = direction;
-				}
-				else
-				{
-					offsetIfneedToSpawnNew = direction;
-				}
+				emptyDirs.Add(direction);
+			}
+			else if (IsPreview(gridPosToCheck))
+			{
+				PreViewGrid pre = GetPreview(gridPosToCheck);
+				previewDirs.Add(pre.id);
+			}
+			else
+			{
+				occupiedDir = direction;
 			}
 		}
 
-		if (offset == Vector2.zero) { _previewList[id].Destroy(); _previewList[id] = null; } else { _previewList[id].Move(offset); }
-		if (offsetIfneedToSpawnNew != Vector2.zero) { SpawnPreviewGrid(_previewList.Count, justSpawndGridsPos + offsetIfneedToSpawnNew, true); }	
+		if (directions.Count == 2)
+		{
+			if(emptyDirs.Count == 1)
+			{
+				Move(id, emptyDirs[0]);
+			}
+			else if(previewDirs.Count == 1)
+			{
+				Merge(id, previewDirs[0]);
+			}
+		}
+		else if(directions.Count == 3)
+		{
+			if(emptyDirs.Count == 2)
+			{
+				Move(id, emptyDirs[0]);
+				CreateNew(justSpawnedGridPos + emptyDirs[1]);
+			}
+			else if(previewDirs.Count == 2)
+			{
+				Merge(id, previewDirs[0]);
+				Merge(previewDirs[1]-2);
+			}
+			else if(emptyDirs.Count == 1 && previewDirs.Count == 1)
+			{
+				Move(id, emptyDirs[0]);
+				Merge(previewDirs[0]);
+			}
+		}
+	}
 
-		_previewTileMatrix[justSpawndGridsPos + offset] = _previewList[id];
+	private void Merge(int ID1, int ID2)
+	{
+		Vector2 gr = _previewList[ID1]._gridPos;
+		Vector2 gridPosition = _previewList[ID2]._gridPos;
+		_previewList[ID1].Destroy();
+		_previewList[ID2].Destroy();
+		_previewList.RemoveAt(ID1);
+		_previewList.RemoveAt(ID2);
+		GridManager.Instance.RemoveEnemyBiom();
+		GridManager.Instance.ConvertToStaticEnemyBiom(gridPosition);
+		_previewTileMatrix.Remove(gridPosition);
+		_previewTileMatrix.Remove(gr);
+	}
+	private void Merge(int ID1)
+	{
+		Vector2 gridPosition = _previewList[ID1]._gridPos;
+		_previewList[ID1].Destroy();
+		_previewList.RemoveAt(ID1 );
+		GridManager.Instance.ConvertToStaticEnemyBiom(gridPosition);
+		_previewTileMatrix.Remove(gridPosition);
+	}
+
+	private void CreateNew(Vector2 pos)
+	{
+		SpawnPreviewGrid(_previewList.Count, pos, true);
+	}
+
+	private void Move(int id, Vector2 direction)
+	{
+		_previewList[id].Move(direction);
 	}
 
 	private void GameStateChanged(GameState newState)
@@ -109,7 +167,13 @@ public class PreviewTilesManager : MonoBehaviour
 	}
 
 	private PreViewGrid GetPreview(Vector2 pos)
-	{	// For the Futture to check if after moving there would be overlaping Preview Tile so I can hinnder a Loop happening
+	{	
 		return _previewTileMatrix.TryGetValue(pos, out PreViewGrid pre) ? pre : null;
+	}
+
+	public bool IsPreview(Vector2 pos)
+	{
+		return _previewTileMatrix.TryGetValue(pos, out PreViewGrid pre);
+		
 	}
 }

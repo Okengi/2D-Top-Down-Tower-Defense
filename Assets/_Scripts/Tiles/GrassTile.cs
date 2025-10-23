@@ -7,14 +7,15 @@ using UnityEngine;
 public class GrassTile : Tile
 {
 	[SerializeField] private Color _baseColor, _offsetColor;
-	public override void Init(int x, int y)
+	public override void Init(int x, int y, int id)
 	{
-		base.Init(x, y);
+		base.Init(x, y, id);
 		_name = "Grass Lands";
 		_tileType = TileType.Grass;
 
-		bool isOffset = (x % 2 != y % 2);
-		
+		//bool isOffset = (x % 2 != y % 2);
+		bool isOffset = ((x + y) % 2 == 0);
+
 		if (isOffset)
 		{
 			_renderer.color = _offsetColor;
@@ -28,6 +29,6 @@ public class GrassTile : Tile
 	protected override void OnMouseDown()
 	{
 		base.OnMouseDown();
-		//if (GameManager.instance.state == GameState.PlaceUnits) BuildingManager.instance.Build(_gridPos, _positionInGrid);	
+		if (GameManager.instance.state == GameState.PlaceUnits) BuildingManager.instance.Build(new Vector2(_xPosition, _yPosition));	
 	}
 }

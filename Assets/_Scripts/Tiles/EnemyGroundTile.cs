@@ -2,31 +2,31 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using static UnityEditor.PlayerSettings;
 
 public class EnemyGroundTile : Tile
 {
-	public override void Init(int x, int y)
+	[SerializeField] private Color _baseColor, _offsetColor;
+	public override void Init(int x, int y, int id)
 	{
-		base.Init(x, y);
-		_tileType = TileType.EnemyGround;
+		base.Init(x, y, id);
+		_tileType = TileType.Enemy;
+
+		bool isOffset = ((x + y) % 2 == 0);
+
+		if (isOffset)
+		{
+			_renderer.color = _offsetColor;
+		}
+		else
+		{
+			_renderer.color = _baseColor;
+		}
 	}
 
-	public void Move(Vector2Int newPosition)
-	{
-		TileManager.Instance.MoveTileFromTo(Position, newPosition);
-		_xPosition = newPosition.x;
-		_yPosition = newPosition.y;
-		Position = newPosition;
-		transform.position = new Vector3(_xPosition, _yPosition);
-		_name = GetType().Name + $" ({_xPosition}|{_yPosition}";
-		gameObject.name = _name;
-	}
 
-	public void SelfDestroy()
-	{
-		TileManager.Instance.Remove(Position);
-		Destroy(gameObject);
-	}
+
+
 
 	public void Hide()
 	{
@@ -37,4 +37,6 @@ public class EnemyGroundTile : Tile
 	{
 		transform.position = new Vector3(_xPosition, _yPosition);
 	}
+
+	
 }

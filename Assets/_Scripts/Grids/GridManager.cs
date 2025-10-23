@@ -7,26 +7,29 @@ using UnityEngine;
 
 public class GridManager : MonoBehaviour
 {
-	public static GridManager instance;
+	public static GridManager Instance;
 	public static int _width = 7, _height = 7;
 
-	// Grid Management
-	public Dictionary<Vector2, Grid> _gridsMatrix;
-	public List<List<Grid>> _gridList;
+	// Biom Management
+	public Dictionary<Vector2, Biom> _gridsMatrix;
+	[SerializeField]
+	public List<List<Biom>> _gridList;
 
+	[SerializeField]
 	private List<EnemySpawnBiom> _enemySpawnBioms;
+	[SerializeField]
+	private List<EnemySpawnBiom> _staticEnemyBioms;
 
 	// Variable Inputs (Prefaps)
 	[Header("INPUT")]
-	[SerializeField] private Grid _grassGridePrefap;
-	[SerializeField] private CastelGrid _castleGridPrefap;
 	[SerializeField] private int gridCost = 12;
 
-	private CastelGrid _castleGrid;
+	private CastelBiom _castleGrid;
+
 
 	private void Awake()
 	{
-		instance = this;
+		Instance = this;
 		GameManager.OnGameStateChange += GameStateChanged;
 	}
 	private void OnDestroy()
@@ -35,16 +38,31 @@ public class GridManager : MonoBehaviour
 	}
 	private void Start()
 	{
-		_gridsMatrix = new Dictionary<Vector2, Grid>();
-		_gridList = new List<List<Grid>>();
+		_gridsMatrix = new Dictionary<Vector2, Biom>();
+		_gridList = new List<List<Biom>>();
 		GenerateCastle();
 		_enemySpawnBioms = new List<EnemySpawnBiom>();
-		EnemySpawnBiom defaultEnemySpawnOne = new EnemySpawnBiom(new Vector2(1000,1000), _width, _height);
-		EnemySpawnBiom defaultEnemySpawnTwo = new EnemySpawnBiom(new Vector2(1008,1000), _width, _height);
+		_staticEnemyBioms = new List<EnemySpawnBiom>();
+		EnemySpawnBiom defaultEnemySpawnOne = new EnemySpawnBiom(-1, new Vector2(500,0), _width, _height, GridType.Horizontal);
+		EnemySpawnBiom defaultEnemySpawnTwo = new EnemySpawnBiom(-2, new Vector2(-500,0), _width, _height, GridType.Horizontal);
 		_enemySpawnBioms.Add(defaultEnemySpawnOne);
 		_enemySpawnBioms.Add(defaultEnemySpawnTwo);
 	}
 
+	public List<EnemySpawnBiom> GetEnemySpawns()
+	{
+		List<EnemySpawnBiom> enemySpawnBioms = new List<EnemySpawnBiom>();
+		enemySpawnBioms.AddRange(_staticEnemyBioms);
+		enemySpawnBioms.AddRange(_enemySpawnBioms);
+		return enemySpawnBioms;
+	}
+
+	public Vector2 CalcGridPos(Vector2 tilePos)
+	{
+		int x = (int)Math.Floor(tilePos.x / _width);
+		int y = (int)Math.Floor(tilePos.y / _height);
+		return new Vector2(x, y);
+	}
 
 
 	private void GameStateChanged(GameState newState)
@@ -52,7 +70,6 @@ public class GridManager : MonoBehaviour
 		switch (newState)
 		{
 			case GameState.PlaceNewGrid:
-	
 				break;
 			case GameState.PlaceUnits:
 
@@ -61,7 +78,7 @@ public class GridManager : MonoBehaviour
 				int i = 0;
 				foreach(PreViewGrid preview in PreviewTilesManager.Instance.GetAllPreviewGrids())
 				{
-					Debug.Log($"Trying to move a enemyBiom to {preview._gridPos}");
+					//Debug.Log($"Trying to move a enemyBiom to {preview._gridPos}");
 					_enemySpawnBioms[i].MoveTo(preview._gridPos);
 					i++;
 				}
@@ -81,79 +98,92 @@ public class GridManager : MonoBehaviour
 		}
 	}
 
-	// Diffrent GridBranches ----------------------------------------------------
-	public Grid LastGrid (int gridBranchID)
+	public void RemoveEnemyBiom()
 	{
-		return _gridList[gridBranchID].Last<Grid>();
+		int index = _enemySpawnBioms.Count;
+		_enemySpawnBioms[index - 1].SelfDestroy();
+		_enemySpawnBioms.RemoveAt(index - 1);
+	}
+
+	public void ConvertToStaticEnemyBiom(Vector2 gridPos)
+	{
+		int index = _enemySpawnBioms.Count;
+		EnemySpawnBiom biom = _enemySpawnBioms[index - 1];
+		_enemySpawnBioms.RemoveAt(index - 1);
+
+		_staticEnemyBioms.Add(biom);
+		biom.MoveTo(gridPos);
+		_gridsMatrix.Add(gridPos, biom);
+	}
+
+	// Diffrent GridBranches ----------------------------------------------------
+	public Biom LastGrid (int gridBranchID)
+	{
+		return _gridList[gridBranchID].Last<Biom>();
 	}
 	public void AddGridBranch()
 	{
-		_gridList.Add(new List<Grid>());
-		_enemySpawnBioms.Add(new EnemySpawnBiom(new Vector2(1000, 1000), _width, _height));
+		_gridList.Add(new List<Biom>());
+		_enemySpawnBioms.Add(new EnemySpawnBiom((_enemySpawnBioms.Count + 1)* -1, new Vector2(1000, 1000), _width, _height, GridType.Horizontal));
 	}
 	// --------------------------------------------------------------------------
 
-	public Grid GetGrid(Vector2 pointInGridMatrix)
+	public Biom GetGrid(Vector2 pointInGridMatrix)
 	{
-		return _gridsMatrix.TryGetValue(pointInGridMatrix, out Grid grid) ? grid : null;
+		return _gridsMatrix.TryGetValue(pointInGridMatrix, out Biom grid) ? grid : null;
 	}
 	public void FocusOnGrid(Vector2 pointInGridMatrix)
 	{
-		Grid grid = GetGrid(pointInGridMatrix);
+		Biom grid = GetGrid(pointInGridMatrix);
 		if (grid != null)
 		{
 			CameraManger.instance.MoveTo(pointInGridMatrix);
 		}
 	}
-	public CastelGrid GetCastle()
+	public CastelBiom GetCastleGrid()
 	{   
 		return _castleGrid;
 	}
 
-	public void GenerateGrid(Vector2 posInMatrix, int id)
+	public void GenerateGrassBiom(Vector2 posInMatrix, int id)
 	{	
 		// Check if Player has enough Money
 		if (GameManager.instance.GetMoney() - gridCost >= 0) { GameManager.instance.SpendMoney(gridCost); }
 		else { return; }
-		// Spawning + Nameing + Setup
-		Vector2 pos = new Vector2(posInMatrix.x * _width, posInMatrix.y * _height);
-		Grid spawnedGrid = Instantiate(_grassGridePrefap, pos, Quaternion.identity);
 
 		GridType gridType = GridTypManager.instance.GetRandomPossiebelGridTyp(posInMatrix);
 
-		spawnedGrid.Init(gridType, posInMatrix, id);
-		spawnedGrid.name = $"Grid {posInMatrix.x} {posInMatrix.y}";
-		spawnedGrid.transform.parent = transform;
-
-		_gridsMatrix[posInMatrix] = spawnedGrid;
+		Biom biom = new GrassGrid(id, posInMatrix, _width, _height, gridType);
+		_gridsMatrix.Add(posInMatrix, biom);
 		FocusOnGrid(posInMatrix);
 
 		// Assignes spawnedGrid to GridBranch and Generatse new when nessasary
 		if (_gridList.Count == id)
 		{
-			_gridList.Add(new List<Grid>());
+			_gridList.Add(new List<Biom>());
 		}
-		_gridList[id].Add(spawnedGrid);
+		_gridList[id].Add(biom);
 
-		PreviewTilesManager.Instance.MovePreviewTile(id, posInMatrix, gridType);
+		PreviewTilesManager.Instance.MovePreviewGrid(id, posInMatrix, GridTypManager.instance.GetDirectionsOfType(gridType));
 	}
 
 	public void GenerateCastle()
 	{
-		CastelGrid spawnedGrid = Instantiate(_castleGridPrefap, new Vector2(0,0), Quaternion.identity);
+		List<GridType> SplitingPaths = new List<GridType>() {
+			GridType.BottomLeftRight,
+			GridType.TopLeftRight,
+			GridType.RightTopBottom,
+			GridType.LeftTopBottom,
+		};
+		GridType gridType = GridTypManager.instance.GetRandomPossiebelGridTyp(new Vector2(0, 0), SplitingPaths);
+		Biom castleBiom = new CastelBiom(id: 0, new Vector2(0, 0), _width, _height, gridType);
 
-		List<GridType> possibleTypes = new List<GridType>() {GridType.BottomLeft, GridType.TopLeft, GridType.TopRight, GridType.BottomRight, GridType.Vertical, GridType.Horizontal};
-		GridType gridTyp = possibleTypes[UnityEngine.Random.Range(0, possibleTypes.Count)];
-
-		spawnedGrid.Init(gridTyp, new Vector2(0, 0), 0);
-		spawnedGrid.name = $"Castel 0 0";
-		spawnedGrid.transform.parent = transform;
-		_gridsMatrix[new Vector2(0, 0)] = spawnedGrid;
-		_castleGrid = spawnedGrid;
-		_gridList.Add(new List<Grid>());
+		_gridsMatrix[new Vector2(0, 0)] = castleBiom;
+		_castleGrid = (CastelBiom)castleBiom;
+		_gridList.Add(new List<Biom>());
 		_gridList[0].Add(_castleGrid);
 
-		List<Vector2> directions = GridTypManager.instance.GetDirectionsOfType(gridTyp);
+		List<Vector2> directions = GridTypManager.instance.GetDirectionsOfType(gridType);
 		
 		PreviewTilesManager.Instance.SpawnPreviewGrid(0, directions[0], false);
 		PreviewTilesManager.Instance.SpawnPreviewGrid(1, directions[1], false);
@@ -161,17 +191,12 @@ public class GridManager : MonoBehaviour
 		FocusOnGrid(new Vector2(0, 0));
 	}
 
-	public void MergedTwoPreviews()
-	{
-		_enemySpawnBioms[0].SelfDestroy();
-		_enemySpawnBioms.RemoveAt(0);
-	}
 }
 
 enum GridBiom
 {
 	Castle,
 	Grass,
-	EnemyHedgh
+	Enemy
 }
 

@@ -13,12 +13,16 @@ public class GameManager : MonoBehaviour
 	[SerializeField]
 	private int money;
 
+	[SerializeField]
+	private LevelData levelData;
+
 	private void Awake()
 	{
 		instance = this;
 	}
 	private void Start()
 	{
+		GridTypManager.instance.SetPathBranchCount(levelData.GetExtraPathsCount());
 		UpdateGameState(GameState.PlaceNewGrid);
 	}
 
@@ -31,8 +35,12 @@ public class GameManager : MonoBehaviour
 				break;
 			case GameState.PlaceUnits:
 				break;
+			case GameState.WavePreperations:
+				break;
 			case GameState.Wave:
 				BuildingManager.instance.Deselect();
+				break;
+			case GameState.PostWave:
 				break;
 			case GameState.Death: 
 				break;
@@ -51,12 +59,14 @@ public class GameManager : MonoBehaviour
 				UpdateGameState(GameState.WavePreperations);
 				break;
 			case GameState.WavePreperations: 
-				UpdateGameState(GameState.Wave); break;
+				UpdateGameState(GameState.Wave); 
+				break;
 			case GameState.Wave:
 				UpdateGameState(GameState.PostWave);
 				break;
 			case GameState.PostWave:
-				UpdateGameState(GameState.PlaceNewGrid); break;
+				UpdateGameState(GameState.PlaceNewGrid); 
+				break;
 			case GameState.Death:
 				break;
 				

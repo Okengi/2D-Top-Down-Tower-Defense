@@ -49,7 +49,7 @@ public class PerlinNoiseGenerator : MonoBehaviour
 				}
 				else if (currentNoise > roadThreshold)
 				{
-					// Place road tiles
+					// Place roa tiles
 					// Implement logic to set roads in your grid system
 				}
 				else
